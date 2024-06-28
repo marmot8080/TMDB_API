@@ -28,7 +28,7 @@ class api_manager():
         return movie_ids
 
     def get_movie_detail(self, id):
-        url = self.__base_url + "movie/" + id + "?language=ko-KR"
+        url = self.__base_url + "movie/" + str(id) + "?language=ko-KR"
         response = requests.get(url, headers=self.__headers)
         response = json.loads(response.text)
 
