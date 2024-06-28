@@ -1,1 +1,2 @@
+PyMySQL @ file:///C:/ci_311/pymysql_1676454444121/work
 requests @ file:///C:/b/abs_9c5n24p1y7/croot/requests_1716902867639/work
