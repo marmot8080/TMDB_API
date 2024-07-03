@@ -1,6 +1,7 @@
 import API_manager
 import json
 import datetime
+import time
 
 if __name__ == '__main__':
     f = open("API_key.txt", 'r')
@@ -19,12 +20,14 @@ if __name__ == '__main__':
     while recent_date + datetime.timedelta(14) < today:
         json_file = open(state_file_name, 'w', encoding='utf-8')
         
-        movie_ids = api_manager.get_movie_ids(recent_date, recent_date + datetime.timedelta(14))
+        movie_ids = api_manager.get_movie_ids(recent_date.strftime("%Y-%m-%d"), (recent_date + datetime.timedelta(14)).strftime("%Y-%m-%d"))
+        time.sleep(0.2)
 
         for i in range(state['page'] - 1, len(movie_ids)):
             for id in movie_ids[i]:
                 details = api_manager.get_movie_detail(id)
                 api_manager.wirte_movie_detail(details)
+                time.sleep(0.2)
             
             state['page'] = i + 1
             json.dump(state, json_file, indent='\t')
@@ -33,4 +36,4 @@ if __name__ == '__main__':
         json.dump(state, json_file, indent='\t')
         recent_date += datetime.timedelta(14)
 
-    # del api_manager
+    del api_manager
