@@ -4,8 +4,8 @@ import json
 
 class api_manager():
     __base_url = "https://api.themoviedb.org/3/"
-    # __conn = pymysql.connect()
-    # __cursor = __conn.cursor()
+    __conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', db='mr', password='0000', charset='utf8')
+    __cursor = __conn.cursor()
 
     def __init__(self, key):
         self.__headers = {
@@ -14,7 +14,7 @@ class api_manager():
         }
     
     def __del__(self):
-        # self.__conn.close()
+        self.__conn.close()
         pass
 
     # 최대 14일 간격으로 수집 가능
@@ -42,6 +42,7 @@ class api_manager():
         response = json.loads(response.text)
 
         details = {
+            "id": id,
             "title": response['title'],
             "adult": bool(response['adult']),
             "backdrop_path": response['backdrop_path'],
@@ -57,5 +58,11 @@ class api_manager():
 
         return details
     
-    def wirte_movie_detail(details: json):
-        pass
+    def wirte_movie_detail(self, details: json):
+        sql = """
+            INSERT INTO home_movieinfo(id, title, adult, backdrop_path, poster_path, genres, popularity, overview, release_date, runtime, vote_average, vote_count) 
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)   
+        """
+
+        self.__cursor.execute(sql, details, )
+        self.__conn.commit()
