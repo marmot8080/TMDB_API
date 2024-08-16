@@ -2,7 +2,6 @@ import API_manager
 import json
 import datetime
 import time
-import os
 
 if __name__ == '__main__':
     f = open("API_key.txt", 'r')
