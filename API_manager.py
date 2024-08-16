@@ -17,22 +17,23 @@ class api_manager():
         self.__conn.close()
         pass
 
-    # 최대 14일 간격으로 수집 가능
-    # date 문자열 형태 --> YYYY-MM-DD
-    def get_movie_ids(self, start_date, end_date):
+    def get_total_pages(self, start_date, end_date):
         url = self.__base_url + "movie/changes?end_date=" + end_date + "&page=1&start_date=" + start_date
         
         response = requests.get(url, headers=self.__headers)
         response = json.loads(response.text)
         total_pages = int(response['total_pages'])
-        movie_ids = [[int(info['id']) for info in response['results']]]
 
-        for page in range(2, total_pages+1):
-            url = self.__base_url + "movie/changes?end_date=" + end_date + "&page=" + page + "&start_date=" + start_date
-            response = requests.get(url, headers=self.__headers)
-            response = json.loads(response.text)
+        return total_pages
 
-            movie_ids.append([info['id'] for info in response['results']])
+    # 최대 14일 간격으로 수집 가능
+    # date 문자열 형태 --> YYYY-MM-DD
+    def get_movie_ids(self, start_date, end_date, page):
+        url = self.__base_url + "movie/changes?end_date=" + end_date + "&page=" + str(page) + "&start_date=" + start_date
+        response = requests.get(url, headers=self.__headers)
+        response = json.loads(response.text)
+
+        movie_ids = [info['id'] for info in response['results']]
 
         return movie_ids
 
@@ -41,8 +42,11 @@ class api_manager():
         response = requests.get(url, headers=self.__headers)
         response = json.loads(response.text)
 
+        if "success" in response and response['success'] == False:
+            return None
+
         details = {
-            "id": id,
+            "movie_id": id,
             "title": response['title'],
             "adult": bool(response['adult']),
             "backdrop_path": response['backdrop_path'],
@@ -60,9 +64,26 @@ class api_manager():
     
     def wirte_movie_detail(self, details: json):
         sql = """
-            INSERT INTO home_movieinfo(id, title, adult, backdrop_path, poster_path, genres, popularity, overview, release_date, runtime, vote_average, vote_count) 
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)   
+            INSERT IGNORE INTO home_movieinfo(movie_id, title, adult, backdrop_path, poster_path, genres, popularity, overview, release_date, runtime, vote_average, vote_count) 
+            VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
-        self.__cursor.execute(sql, details, )
+        genres_json = json.dumps(details.get('genres', []))
+
+        data = (
+            details['movie_id'],
+            details['title'],
+            details['adult'],
+            details['backdrop_path'],
+            details['poster_path'],
+            genres_json,
+            details['popularity'],
+            details['overview'],
+            details['release_date'],
+            details['runtime'],
+            details['vote_average'],
+            details['vote_count']
+        )
+
+        self.__cursor.execute(sql, data, )
         self.__conn.commit()
