@@ -3,6 +3,7 @@ import requests
 import json
 
 class api_manager():
+    # TMDB api 및 MySQL 연결 정보 설정
     __base_url = "https://api.themoviedb.org/3/"
     __conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', db='mr', password='0000', charset='utf8')
     __cursor = __conn.cursor()
@@ -17,6 +18,7 @@ class api_manager():
         self.__conn.close()
         pass
 
+    # 요청한 날짜 범위에서 movie id들의 총 페이지 수 반환
     def get_total_pages(self, start_date, end_date):
         url = self.__base_url + "movie/changes?end_date=" + end_date + "&page=1&start_date=" + start_date
         
@@ -26,7 +28,6 @@ class api_manager():
 
         return total_pages
 
-    # 최대 14일 간격으로 수집 가능
     # date 문자열 형태 --> YYYY-MM-DD
     def get_movie_ids(self, start_date, end_date, page):
         url = self.__base_url + "movie/changes?end_date=" + end_date + "&page=" + str(page) + "&start_date=" + start_date
@@ -37,6 +38,7 @@ class api_manager():
 
         return movie_ids
 
+    # 영화 정보 반환
     def get_movie_detail(self, id: int):
         url = self.__base_url + "movie/" + str(id) + "?language=ko-KR"
         response = requests.get(url, headers=self.__headers)
@@ -62,6 +64,7 @@ class api_manager():
 
         return details
     
+    # 영화 정보를 DB에 저장
     def wirte_movie_detail(self, details: json):
         sql = """
             INSERT IGNORE INTO home_movieinfo(movie_id, title, adult, backdrop_path, poster_path, genres, popularity, overview, release_date, runtime, vote_average, vote_count) 
